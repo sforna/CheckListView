@@ -40,7 +40,7 @@ import android.widget.TextView.OnEditorActionListener;
 	private Context mContext;
 	private CheckBox checkBox;
 	private EditTextMultiLineNoEnter editText;
-	private ImageView imageView;
+	private ImageView deletionImageView;
 	private boolean showDeleteIcon;
 	private CheckListEventListener mCheckListEventListener;
 	private CheckListChangedListener mCheckListChangedListener;
@@ -94,25 +94,25 @@ import android.widget.TextView.OnEditorActionListener;
 	
 
 	@SuppressLint("NewApi") private void addDeleteIcon() {
-		if (showDeleteIcon && imageView == null) {
-			imageView = new ImageView(mContext);
-			imageView.setImageResource(R.drawable.ic_action_cancel);
-			imageView.setBackgroundResource(R.drawable.icon_selector);
+		if (showDeleteIcon && deletionImageView == null) {
+			deletionImageView = new ImageView(mContext);
+			deletionImageView.setImageResource(R.drawable.ic_action_cancel);
+			deletionImageView.setBackgroundResource(R.drawable.icon_selector);
 			int size = DensityUtil.convertDpToPixel(30, mContext);
 			LayoutParams lp = new LayoutParams(size, size);
 			lp.setMargins(0, DensityUtil.convertDpToPixel(5, mContext), 0, 0);
-			imageView.setLayoutParams(lp);
+			deletionImageView.setLayoutParams(lp);
 			
 			int padding = DensityUtil.convertDpToPixel(2, mContext);
-			imageView.setPadding(padding, padding, padding, padding);
+			deletionImageView.setPadding(padding, padding, padding, padding);
 			
 			// Alpha is set just for newer API because using AlphaManager helper class I should use 
 			// an animation making this way impossible to set visibility to INVISIBLE
 			if (Build.VERSION.SDK_INT >= 11)
-				imageView.setAlpha( 0.7f);
-			imageView.setVisibility(View.INVISIBLE);
-			imageView.setOnClickListener(this);
-			addView(imageView);
+				deletionImageView.setAlpha( 0.7f);
+			deletionImageView.setVisibility(View.INVISIBLE);
+			deletionImageView.setOnClickListener(this);
+			addView(deletionImageView);
 		}
 	}
 
@@ -170,8 +170,8 @@ import android.widget.TextView.OnEditorActionListener;
 	public void onFocusChange(View v, boolean hasFocus) {
 		// When a line gains focus deletion icon (if present) will be shown
 		if (hasFocus) {
-			if (imageView != null)
-				imageView.setVisibility(View.VISIBLE);
+			if (deletionImageView != null)
+				deletionImageView.setVisibility(View.VISIBLE);
 		} else {
 			// When a line loose focus checkbox will be activated
 			// but only if some text has been inserted
@@ -181,8 +181,8 @@ import android.widget.TextView.OnEditorActionListener;
 				setCheckBox(c);
 			}
 			// And deletion icon (if present) will hide
-			if (imageView != null)
-				imageView.setVisibility(View.INVISIBLE);
+			if (deletionImageView != null)
+				deletionImageView.setVisibility(View.INVISIBLE);
 		}
 	}
 	
@@ -328,15 +328,29 @@ import android.widget.TextView.OnEditorActionListener;
 		return res;
 	}
 
+	
+	
+	/**
+	 * Checks if is the first item of the list
+	 * @return
+	 */
+	public boolean isFirstItem() {
+		boolean res = false;
+		View firstItem = ((ViewGroup) getParent()).getChildAt(0);
+		if (this.equals(firstItem)) {
+			res = true;
+		}			
+		return res;
+	}
+	
 
 	@Override
 	public void onDeletePressed() {
 		// When this is catched if text is empty the current item will 
 		// be removed and focus moved to item above.
 		if (!isHintItem() && getText().length() == 0) {
-			if (imageView != null) {
-//				imageView.performClick();
-				focusView(View.FOCUS_UP);
+			if (deletionImageView != null) {
+				focusView(isFirstItem() ? View.FOCUS_DOWN : View.FOCUS_UP);
 				((ViewGroup) getParent()).removeView(this);
 				mCheckListEventListener.onLineDeleted(this);
 			}
